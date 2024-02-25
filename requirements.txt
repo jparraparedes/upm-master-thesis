@@ -1,0 +1,5 @@
+jupyter==1.0.0
+matplotlib==3.8.1
+numpy==1.26.3
+sympy==1.12
+dwave-ocean-sdk==6.8.0

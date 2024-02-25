@@ -1,0 +1,9 @@
+* D:\Javi\Computacion_cuantica\2022_master_UPM_Quantum_computing\14_master_thesis\adiabatic_solve_linear_system\work\example_1.asc
+R1 2 1 1
+R2 0 2 0.5
+V1 1 0 3
+* V2
+* GND
+* Ie
+.backanno
+.end
