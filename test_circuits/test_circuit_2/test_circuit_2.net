@@ -1,9 +1,0 @@
- DJaviComputacion_cuantica2022_master_UPM_Quantum_computing14_master_thesisupm_master_thesis_repotest_circuitstest_circuit_2test_circuit_2.asc
-R1 N002 N001 1
-R2 0 N002 0.5
-V1 N001 0 1.5
- V2
- GND
- Ie
-.backanno
-.end
