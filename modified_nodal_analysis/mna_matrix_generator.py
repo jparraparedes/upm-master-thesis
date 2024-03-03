@@ -334,7 +334,7 @@ class MnaMatrixGenerator:
 				self.df2.loc[count,'element'] = self.df.loc[i,'element']
 				self.df2.loc[count,'p node'] = self.df.loc[i,'p node']
 				self.df2.loc[count,'n node'] = self.df.loc[i,'n node']
-			count += 1
+				count += 1
 
 	def print_net_list_report(self):
 
@@ -374,7 +374,8 @@ class MnaMatrixGenerator:
 			if x == 'C':
 				g = self.s * sympify(self.df.loc[i, 'element'])
 			if x == 'G':  # vccs type element
-				g = sympify(self.df.loc[i, 'element'].lower())  # use a symbol for gain value
+				g = sympify(self.df.loc[i, 'element'])  # use a symbol for gain value
+				# g = sympify(self.df.loc[i, 'element'].lower())  # use a symbol for gain value
 
 			if (x == 'R') or (x == 'C'):
 				# If neither side of the element is connected to ground
@@ -558,9 +559,11 @@ class MnaMatrixGenerator:
 						self.c_matrix[sn, n2 - 1] = -1
 					# add entry for cp and cn of the controlling voltage
 					if cn1 != 0:
-						self.c_matrix[sn, cn1 - 1] = -sympify(self.df.loc[i, 'element'].lower())
+						self.c_matrix[sn, cn1 - 1] = -sympify(self.df.loc[i, 'element'])
+						# self.c_matrix[sn, cn1 - 1] = -sympify(self.df.loc[i, 'element'].lower())
 					if cn2 != 0:
-						self.c_matrix[sn, cn2 - 1] = sympify(self.df.loc[i, 'element'].lower())
+						self.c_matrix[sn, cn2 - 1] = sympify(self.df.loc[i, 'element'])
+						# self.c_matrix[sn, cn2 - 1] = sympify(self.df.loc[i, 'element'].lower())
 				else:
 					if n1 != 0:
 						self.c_matrix[n1 - 1] = 1
@@ -568,9 +571,11 @@ class MnaMatrixGenerator:
 						self.c_matrix[n2 - 1] = -1
 					vn1, vn2, df2_index = self.find_vname(self.df.loc[i, 'Vname'])
 					if vn1 != 0:
-						self.c_matrix[vn1 - 1] = -sympify(self.df.loc[i, 'element'].lower())
+						self.c_matrix[vn1 - 1] = -sympify(self.df.loc[i, 'element'])
+						# self.c_matrix[vn1 - 1] = -sympify(self.df.loc[i, 'element'].lower())
 					if vn2 != 0:
-						self.c_matrix[vn2 - 1] = sympify(self.df.loc[i, 'element'].lower())
+						self.c_matrix[vn2 - 1] = sympify(self.df.loc[i, 'element'])
+						# self.c_matrix[vn2 - 1] = sympify(self.df.loc[i, 'element'].lower())
 				sn += 1  # increment source count
 
 			if x == 'L':
@@ -621,7 +626,8 @@ class MnaMatrixGenerator:
 				# need to find the vn for Vname
 				# then stamp the matrix
 				vn1, vn2, df2_index = self.find_vname(self.df.loc[i, 'Vname'])
-				self.d_matrix[sn, df2_index] += -sympify(self.df.loc[i, 'element'].lower())
+				self.d_matrix[sn, df2_index] += -sympify(self.df.loc[i, 'element'])
+				# self.d_matrix[sn, df2_index] += -sympify(self.df.loc[i, 'element'].lower())
 				sn += 1  # increment source count
 
 			if x == 'F':  # F: cccs
@@ -629,7 +635,8 @@ class MnaMatrixGenerator:
 				# need to find the vn for Vname
 				# then stamp the matrix
 				vn1, vn2, df2_index = self.find_vname(self.df.loc[i, 'Vname'])
-				self.d_matrix[sn, df2_index] += -sympify(self.df.loc[i, 'element'].lower())
+				self.d_matrix[sn, df2_index] += -sympify(self.df.loc[i, 'element'])
+				# self.d_matrix[sn, df2_index] += -sympify(self.df.loc[i, 'element'].lower())
 				self.d_matrix[sn, sn] = 1
 				sn += 1  # increment source count
 
@@ -639,8 +646,11 @@ class MnaMatrixGenerator:
 				vn1, vn2, ind2_index = self.find_vname(self.df.loc[i, 'Lname2'])  # get i_unk position for Ly
 				# enter sM on diagonals = value*sqrt(LXX*LZZ)
 
-				self.d_matrix[ind1_index, ind2_index] += -self.s * sympify('M{:s}'.format(self.df.loc[i, 'element'].lower()[1:]))  # s*Mxx
-				self.d_matrix[ind2_index, ind1_index] += -self.s * sympify('M{:s}'.format(self.df.loc[i, 'element'].lower()[1:]))  # -s*Mxx
+				self.d_matrix[ind1_index, ind2_index] += -self.s * sympify('M{:s}'.format(self.df.loc[i, 'element'][1:]))  # s*Mxx
+				self.d_matrix[ind2_index, ind1_index] += -self.s * sympify('M{:s}'.format(self.df.loc[i, 'element'][1:]))  # -s*Mxx
+
+				# self.d_matrix[ind1_index, ind2_index] += -self.s * sympify('M{:s}'.format(self.df.loc[i, 'element'].lower()[1:]))  # s*Mxx
+				# self.d_matrix[ind2_index, ind1_index] += -self.s * sympify('M{:s}'.format(self.df.loc[i, 'element'].lower()[1:]))  # -s*Mxx
 
 		# display the The D matrix
 		if print_info:
@@ -676,9 +686,9 @@ class MnaMatrixGenerator:
 				g = sympify(self.df.loc[i, 'element'])
 				# sum the current into each node
 				if n1 != 0:
-					I[n1 - 1] -= g
+					self.i_matrix[n1 - 1] -= g
 				if n2 != 0:
-					I[n2 - 1] += g
+					self.i_matrix[n2 - 1] += g
 
 		if print_info:
 			print(self.i_matrix)  # display the I matrix

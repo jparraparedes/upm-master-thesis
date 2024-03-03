@@ -3,8 +3,8 @@ from qubo_formulation import qubo_formulation
 from modified_nodal_analysis.mna_matrix_generator import MnaMatrixGenerator
 from dwave_tools import dwave_tools
 
-# test_circuit = 'test_circuits\\test_circuit_1\\test_circuit_1.net'
-test_circuit = 'test_circuits\\test_circuit_2\\netlist_test_circuit_2.net'
+test_circuit = 'test_circuits\\test_circuit_1\\netlist_test_circuit_1.net'
+# test_circuit = 'test_circuits\\test_circuit_4\\netlist_test_circuit_4.net'
 method = qubo_formulation.Method.METHOD_WITH_SIGN
 
 mna_matrix_gen = MnaMatrixGenerator()
@@ -16,14 +16,40 @@ print(a_matrix)
 print(df)
 print(symbol_value_dict)
 
-dimension = len(z_matrix)
+dimension = len(x_matrix)
 
 num_qubits_dict = {
-	x_matrix[0]: {"INTEGER": 2, "FRACTIONAL": 2},
-	x_matrix[1]: {"INTEGER": 2, "FRACTIONAL": 2},
-	x_matrix[2]: {"INTEGER": 2, "FRACTIONAL": 2}
+	x_matrix[0]: {"INTEGER": 2, "FRACTIONAL": 0},
+	x_matrix[1]: {"INTEGER": 2, "FRACTIONAL": 0},
+	x_matrix[2]: {"INTEGER": 2, "FRACTIONAL": 0}
 }
 
+# num_qubits_dict = {
+# 	x_matrix[0]: {"INTEGER": 2, "FRACTIONAL": 1},
+# 	x_matrix[1]: {"INTEGER": 3, "FRACTIONAL": 1},
+# 	x_matrix[2]: {"INTEGER": 4, "FRACTIONAL": 2},
+# 	x_matrix[3]: {"INTEGER": 3, "FRACTIONAL": 2},
+# 	x_matrix[4]: {"INTEGER": 2, "FRACTIONAL": 1},
+# 	x_matrix[5]: {"INTEGER": 2, "FRACTIONAL": 3},
+# 	x_matrix[6]: {"INTEGER": 3, "FRACTIONAL": 1},
+# 	x_matrix[7]: {"INTEGER": 5, "FRACTIONAL": 2},
+# 	x_matrix[8]: {"INTEGER": 3, "FRACTIONAL": 1}
+# }
+
+# num_qubits_dict = {
+# 	x_matrix[0]: {"INTEGER": 2, "FRACTIONAL": 1},
+# 	x_matrix[1]: {"INTEGER": 3, "FRACTIONAL": 1},
+# 	x_matrix[2]: {"INTEGER": 4, "FRACTIONAL": 2},
+# 	x_matrix[3]: {"INTEGER": 3, "FRACTIONAL": 2},
+# 	x_matrix[4]: {"INTEGER": 2, "FRACTIONAL": 1},
+# 	x_matrix[5]: {"INTEGER": 2, "FRACTIONAL": 3},
+# 	x_matrix[6]: {"INTEGER": 3, "FRACTIONAL": 1},
+# 	x_matrix[7]: {"INTEGER": 5, "FRACTIONAL": 2},
+# 	x_matrix[8]: {"INTEGER": 3, "FRACTIONAL": 1}
+# }
+
+
+print(a_matrix)
 A_matrix = np.asarray(a_matrix.subs(symbol_value_dict))
 b_matrix = [expr.subs(symbol_value_dict) for expr in z_matrix]
 

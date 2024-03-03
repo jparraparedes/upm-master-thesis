@@ -1,4 +1,7 @@
 from dwave.samplers import SimulatedAnnealingSampler
+from dwave.system import DWaveSampler, EmbeddingComposite
+import os
+os.environ['DWAVE_API_TOKEN'] = "DEV-b7ef410cdf48095080bad36ae09386aaf23d4f67"
 
 # Print Python code for the run in D-Wave quantum processing unit
 
@@ -46,9 +49,6 @@ def get_dwave_solution_approach_1(total_num_qubits, QM):
 			num_occurrences, num_reads, variables
 		))
 
-	for values, energy, num_occurrences in response.data():
-		print(values)
-		print(energy)
 	return response
 
 
@@ -78,15 +78,14 @@ def get_dwave_solution_approach_2(total_num_qubits, QM):
 				qdrt2 = j + 1
 				quadratic_dict[("q" + str(qdrt1), "q" + str(qdrt2))] = QM[i][j]
 
-	# print(quadratic_dict)
-
 	qubo = dict(linear_dict)
 	qubo.update(quadratic_dict)
 
 	print(qubo)
 
 	sampler = SimulatedAnnealingSampler()
-	num_reads = 10000
+	# sampler = EmbeddingComposite(DWaveSampler())
+	num_reads = 1000
 
 	response = sampler.sample_qubo(qubo, num_reads=num_reads)
 	response = response.aggregate()
@@ -98,9 +97,5 @@ def get_dwave_solution_approach_2(total_num_qubits, QM):
 		print('{:4.0f}/{} occurrences: {}'.format(
 			num_occurrences, num_reads, variables
 		))
-
-	for values, energy, num_occurrences in response.data():
-		print(values)
-		print(energy)
 
 	return response
