@@ -5,7 +5,7 @@ os.environ['DWAVE_API_TOKEN'] = "DEV-b7ef410cdf48095080bad36ae09386aaf23d4f67"
 
 # Print Python code for the run in D-Wave quantum processing unit
 
-def get_dwave_solution_approach_1(total_num_qubits, QM):
+def get_dwave_solution_approach_1(total_num_qubits, QM, num_reads=500, simulated=True):
 	QM = 1000 * QM  # All coefficients of QM shall be integer
 
 	linear_dict = {}
@@ -35,26 +35,31 @@ def get_dwave_solution_approach_1(total_num_qubits, QM):
 
 	# print(qubo)
 
-	sampler = SimulatedAnnealingSampler()
-	num_reads = 5000
+	if simulated:
+		sampler = SimulatedAnnealingSampler()
+	else:
+		sampler = EmbeddingComposite(DWaveSampler())
 
 	response = sampler.sample_qubo(qubo, num_reads=num_reads)
 	response = response.aggregate()
 
 	print(response)
 
-	for values, energy, num_occurrences in response.data():
-		variables = [key for key in values if values[key] != 0]
-		print('{:4.0f}/{} occurrences: {}'.format(
-			num_occurrences, num_reads, variables
-		))
+	if simulated:
+		for values, energy, num_occurrences in response.data():
+			variables = [key for key in values if values[key] != 0]
+			print('{:4.0f}/{} occurrences: {}'.format(num_occurrences, num_reads, variables))
+	else:
+		for values, energy, num_occurrences, _ in response.data():
+			variables = [key for key in values if values[key] != 0]
+			print('{:4.0f}/{} occurrences: {}'.format(num_occurrences, num_reads, variables))
 
 	return response
 
 
 # Print Python code for the run in D-Wave quantum processing unit
 
-def get_dwave_solution_approach_2(total_num_qubits, QM):
+def get_dwave_solution_approach_2(total_num_qubits, QM, num_reads=500, simulated=True):
 
 	QM = 1000 * QM  # All coefficients of QM shall be integer
 
@@ -83,19 +88,23 @@ def get_dwave_solution_approach_2(total_num_qubits, QM):
 
 	print(qubo)
 
-	sampler = SimulatedAnnealingSampler()
-	# sampler = EmbeddingComposite(DWaveSampler())
-	num_reads = 1000
+	if simulated:
+		sampler = SimulatedAnnealingSampler()
+	else:
+		sampler = EmbeddingComposite(DWaveSampler())
 
 	response = sampler.sample_qubo(qubo, num_reads=num_reads)
 	response = response.aggregate()
 
 	print(response)
 
-	for values, energy, num_occurrences in response.data():
-		variables = [key for key in values if values[key] != 0]
-		print('{:4.0f}/{} occurrences: {}'.format(
-			num_occurrences, num_reads, variables
-		))
+	if simulated:
+		for values, energy, num_occurrences in response.data():
+			variables = [key for key in values if values[key] != 0]
+			print('{:4.0f}/{} occurrences: {}'.format(num_occurrences, num_reads, variables))
+	else:
+		for values, energy, num_occurrences, _ in response.data():
+			variables = [key for key in values if values[key] != 0]
+			print('{:4.0f}/{} occurrences: {}'.format(num_occurrences, num_reads, variables))
 
 	return response

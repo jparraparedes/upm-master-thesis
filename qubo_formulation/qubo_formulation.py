@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
 class Method:
 	METHOD_WITHOUT_SIGN = "METHOD_WITHOUT_SIGN"
@@ -379,7 +380,7 @@ def get_qubo_matrix_approach_2_optimized_num_qubits(list_of_variables, num_qubit
 
 	return QM
 
-def process_dwave_results(list_of_variables, method, response, num_qubits_dict):
+def process_dwave_results(list_of_variables, method, response, num_qubits_dict, simulated=True):
 
 	qubit_list_per_variable_dict, number_qubits_used = get_qubits_per_variable(list_of_variables=list_of_variables, method=method,
 	                                                       num_qubits_dict=num_qubits_dict)
@@ -387,24 +388,44 @@ def process_dwave_results(list_of_variables, method, response, num_qubits_dict):
 	variable_value_dict = {}
 	result_index = 1
 
-	for raw_values_dict, energy, num_occurrences in response.data():
-		# For each result returned by dwave, calculate the variable values
+	if simulated:
+		for raw_values_dict, energy, num_occurrences in response.data():
+			# For each result returned by dwave, calculate the variable values
 
-		result_dict = {}
+			result_dict = {}
 
-		for variable_index in range(0, len(list_of_variables)):
-			result_dict[list_of_variables[variable_index]] = get_value(method, raw_values_dict,
-			                                    num_qubits_dict[list_of_variables[variable_index]],
-			                                    qubit_list_per_variable_dict[list_of_variables[variable_index]])
+			for variable_index in range(0, len(list_of_variables)):
+				result_dict[list_of_variables[variable_index]] = get_value(method, raw_values_dict,
+				                                    num_qubits_dict[list_of_variables[variable_index]],
+				                                    qubit_list_per_variable_dict[list_of_variables[variable_index]])
 
-		result_dict["occurrences"] = num_occurrences
-		result_dict["energy"] = energy
+			result_dict["occurrences"] = num_occurrences
+			result_dict["energy"] = energy
 
-		variable_value_dict["result_" + str(result_index)] = result_dict
-		result_index += 1
+			variable_value_dict["result_" + str(result_index)] = result_dict
+			result_index += 1
 
+	else:
+		for raw_values_dict, energy, num_occurrences, _ in response.data():
+			# For each result returned by dwave, calculate the variable values
+
+			result_dict = {}
+
+			for variable_index in range(0, len(list_of_variables)):
+				result_dict[list_of_variables[variable_index]] = get_value(method, raw_values_dict,
+				                                                           num_qubits_dict[
+					                                                           list_of_variables[variable_index]],
+				                                                           qubit_list_per_variable_dict[
+					                                                           list_of_variables[variable_index]])
+
+			result_dict["occurrences"] = num_occurrences
+			result_dict["energy"] = energy
+
+			variable_value_dict["result_" + str(result_index)] = result_dict
+			result_index += 1
 
 	return variable_value_dict
+
 
 def get_qubits_per_variable(list_of_variables, method, num_qubits_dict):
 
@@ -503,4 +524,50 @@ def get_value(method, raw_values_dict, num_qubits_dict, list_of_qubits):
 
 	return value
 
+def plot_histogram(data):
+
+	result_dict = {}
+
+	for result in data.keys():
+
+		for variable_name in data[result].keys():
+
+			if variable_name != 'occurrences' and variable_name != 'energy':
+				if variable_name not in result_dict.keys(): # variable already in the dictionary, update the value/occurrences
+					result_dict[variable_name] = {'list_of_values': [], 'list_of_occurrences': []}
+
+				value = data[result][variable_name]
+				occurrences = data[result]['occurrences']
+
+				# Check if value in list
+				list_of_values = result_dict[variable_name]['list_of_values']
+				if value in list_of_values:
+
+					# get position on the list (index)
+					index = list_of_values.index(value)
+					# update number of occurrences
+					list_of_occurrences = result_dict[variable_name]['list_of_occurrences']
+					list_of_occurrences[index] = occurrences + list_of_occurrences[index]
+					result_dict[variable_name]['list_of_occurrences'] = list_of_occurrences
+				else:
+					list_of_values = result_dict[variable_name]['list_of_values']
+					list_of_values.append(value)
+					result_dict[variable_name]['list_of_values'] = list_of_values
+					list_of_occurrences = result_dict[variable_name]['list_of_occurrences']
+					list_of_occurrences.append(occurrences)
+					result_dict[variable_name]['list_of_occurrences'] = list_of_occurrences
+
+	fig, axs = plt.subplots(1, len(result_dict.keys()), sharey=True, tight_layout=True)
+
+	# We can set the number of bins with the *bins* keyword argument.
+	index = 0
+	for variable_name in result_dict.keys():
+		axs[index].bar(result_dict[variable_name]['list_of_values'], result_dict[variable_name]['list_of_occurrences'],
+		               width=0.01)
+		axs[index].set_xlabel(str(variable_name))
+		index += 1
+
+	plt.show()
+
+	return result_dict
 
