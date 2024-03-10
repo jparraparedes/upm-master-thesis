@@ -7,7 +7,7 @@ test_circuit = 'test_circuits\\test_circuit_1\\netlist_test_circuit_1.net'
 # test_circuit = 'test_circuits\\test_circuit_2\\netlist_test_circuit_2.net'
 # test_circuit = 'test_circuits\\test_circuit_4\\netlist_test_circuit_4.net'
 method = qubo_formulation.Method.METHOD_WITH_SIGN
-simulated = True
+simulated = False
 num_reads = 500
 
 mna_matrix_gen = MnaMatrixGenerator()

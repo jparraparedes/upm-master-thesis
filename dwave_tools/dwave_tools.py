@@ -1,7 +1,9 @@
 from dwave.samplers import SimulatedAnnealingSampler
 from dwave.system import DWaveSampler, EmbeddingComposite
 import os
-os.environ['DWAVE_API_TOKEN'] = "DEV-b7ef410cdf48095080bad36ae09386aaf23d4f67"
+
+with open('dwave_token.txt', 'r') as file:
+    os.environ['DWAVE_API_TOKEN'] = file.read()
 
 # Print Python code for the run in D-Wave quantum processing unit
 
