@@ -1,82 +1,20 @@
 import numpy as np
 import matplotlib.pyplot as plt
-
-class Method:
-	METHOD_WITHOUT_SIGN = "METHOD_WITHOUT_SIGN"
-	METHOD_WITH_SIGN = "METHOD_WITH_SIGN"
-
-def get_qubo_matrix_approach_1(dimension, qubits_int, qubits_dec, A, b):
-	"""
-	This function returns the QUBO matrix with the same number of qubits for positive and negative part
-	For each variable, 2 * (qubits for integer + qubits for fractional) are required for each variable
-	:param dimension: dimension of the equation system (example: 3 independent equations -> dimension=3)
-	:param qubits_int: number of qubits (integer part)
-	:param qubits_dec: number of qubits (decimal part)
-	:param A: A Matrix
-	:param b: b vector
-	:return: QM (Qubo matrix)
-	"""
-
-	QM = np.zeros(( 2 *(qubits_int +qubits_dec ) *dimension, 2* (qubits_int + qubits_dec) * dimension))
-
-	for k in range(dimension):  # k corresponds with the row
-		for i in range(dimension):  # i corresponds with the column
-			for l in range((-1) * qubits_dec, qubits_int,
-			               1):  # (l = -qubits_dec ... qubits_int-1). Integer + Float part
-				cef1 = pow(2, 2 * l) * pow(A[k][i], 2)
-				cef2 = pow(2, l + 1) * A[k][i] * b[k]
-
-				po1 = 2 * (qubits_dec + qubits_int) * i + l + qubits_dec
-				po2 = 2 * (qubits_dec + qubits_int) * i + l + qubits_dec + (qubits_int + qubits_dec)
-
-				QM[po1][po1] = QM[po1][po1] + cef1 - cef2
-				QM[po2][po2] = QM[po2][po2] + cef1 + cef2
-
-	for k in range(dimension):
-		for i in range(dimension):
-			for l1 in range((-1) * qubits_dec, qubits_int - 1, 1):
-				for l2 in range(l1 + 1, qubits_int):
-					qcef = pow(2, l1 + l2 + 1) * pow(A[k][i], 2)
-					po1 = 2 * (qubits_dec + qubits_int) * i + l1 + qubits_dec
-					po2 = 2 * (qubits_dec + qubits_int) * i + qubits_dec + l2
-
-					po3 = 2 * (qubits_dec + qubits_int) * i + qubits_dec + l1 + (qubits_int + qubits_dec)
-					po4 = 2 * (qubits_dec + qubits_int) * i + qubits_dec + l2 + (qubits_int + qubits_dec)
-
-					QM[po1][po2] = QM[po1][po2] + qcef
-					QM[po3][po4] = QM[po3][po4] + qcef
-
-	for k in range(dimension):
-		for i in range(dimension - 1):
-			for j in range(i + 1, dimension):
-				for l1 in range((-1) * qubits_dec, qubits_int, 1):
-					for l2 in range((-1) * qubits_dec, qubits_int, 1):
-						qcef = pow(2, l1 + l2 + 1) * A[k][i] * A[k][j]
-						po1 = 2 * (qubits_dec + qubits_int) * i + qubits_dec + l1
-						po2 = 2 * (qubits_dec + qubits_int) * j + qubits_dec + l2
-
-						po3 = 2 * (qubits_dec + qubits_int) * i + qubits_dec + l1 + (qubits_int + qubits_dec)
-						po4 = 2 * (qubits_dec + qubits_int) * j + qubits_dec + l2 + (qubits_int + qubits_dec)
-
-						po5 = 2 * (qubits_dec + qubits_int) * i + qubits_dec + l1
-						po6 = 2 * (qubits_dec + qubits_int) * j + qubits_dec + l2 + (qubits_int + qubits_dec)
-
-						po7 = 2 * (qubits_dec + qubits_int) * i + qubits_dec + l1 + (qubits_int + qubits_dec)
-						po8 = 2 * (qubits_dec + qubits_int) * j + qubits_dec + l2
-
-						QM[po1][po2] = QM[po1][po2] + qcef
-						QM[po3][po4] = QM[po3][po4] + qcef
-						QM[po5][po6] = QM[po5][po6] - qcef
-						QM[po7][po8] = QM[po7][po8] - qcef
-
-	# Print Matrix Q
-	print("# Matrix Q is")
-	print(QM)
-
-	return QM
+from helpers.constants import LinearCircuitSolver
 
 
-def get_qubo_matrix_approach_1_optimized_num_qubits(list_of_variables, num_qubits_dict, A_matrix, b_matrix):
+def get_qubo_matrix(method, list_of_variables, num_qubits_dict, A_matrix, b_matrix):
+
+	if method == LinearCircuitSolver.Method.METHOD_WITHOUT_SIGN:
+		qubo_matrix = get_qubo_matrix_without_sign_method(list_of_variables, num_qubits_dict, A_matrix, b_matrix)
+	elif method == LinearCircuitSolver.Method.METHOD_WITH_SIGN:
+		qubo_matrix = get_qubo_matrix_with_sign_method(list_of_variables, num_qubits_dict, A_matrix, b_matrix)
+	else:
+		raise Exception("method not valid {}".format(method))
+
+	return qubo_matrix
+
+def get_qubo_matrix_without_sign_method(list_of_variables, num_qubits_dict, A_matrix, b_matrix):
 	"""
 	This function returns the QUBO matrix with the same number of qubits for positive and negative part
 	For each variable, 2 * (qubits for integer + qubits for fractional) are required for each variable
@@ -87,71 +25,80 @@ def get_qubo_matrix_approach_1_optimized_num_qubits(list_of_variables, num_qubit
 	:return: QM (Qubo matrix)
 	"""
 	dimension = len(list_of_variables)
+	total_num_qubits = 0
 
-	num_rows = 0
-	num_columns = 0
-
+	# Calculate the number of rows and columns of QUBO matrix (square matrix), which is really the total number of qubits
 	for variable in list_of_variables:
-		num_rows += 2 * (num_qubits_dict[variable]["INTEGER"] + num_qubits_dict[variable]["FRACTIONAL"])
-		num_columns += 2 * (num_qubits_dict[variable]["INTEGER"] + num_qubits_dict[variable]["FRACTIONAL"])
+		total_num_qubits += 2 * (num_qubits_dict[variable]["INTEGER"] + num_qubits_dict[variable]["FRACTIONAL"])
 
-	QM = np.zeros(( num_rows, num_columns))
+	# Create QUBO matrix (square matrix) with all the elements initialized to 0
+	QM = np.zeros(( total_num_qubits, total_num_qubits))
 
-	for k in range(dimension):  # k corresponds with the row
-		for i in range(dimension):  # i corresponds with the column
+	for k in range(dimension):  # k corresponds with the row (from 0 to dimension -1). Matrix is handled from index=0
+		for i in range(dimension):  # i corresponds with the column (from 0 to dimension -1). Matrix is handled from index=0
 
+			# Number of integer and fractional qubits per each variable is given by num_qubits_dict (parameter)
 			num_qubits_int = num_qubits_dict[list_of_variables[dimension - 1]]["INTEGER"]
 			num_qubits_fract = num_qubits_dict[list_of_variables[dimension - 1]]["FRACTIONAL"]
 
-			for l in range((-1) * num_qubits_fract, num_qubits_int,
-			               1):  # (l = -qubits_dec ... qubits_int-1). Integer + Float part
-				cef1 = pow(2, 2 * l) * pow(A_matrix[k][i], 2)
-				cef2 = pow(2, l + 1) * A_matrix[k][i] * b_matrix[k]
+			for l in range((-1) * num_qubits_fract, num_qubits_int, 1):  # (l = -qubits_fract ... qubits_int-1).
+				# Integer + Float part
+				cef1 = pow(2, 2 * l) * pow(A_matrix[k][i], 2)   # First term, lineal one
+				cef2 = pow(2, l + 1) * A_matrix[k][i] * b_matrix[k] # Third term, lineal one
 
-				po1 = 2 * (num_qubits_fract + num_qubits_int) * i + l + num_qubits_fract
-				po2 = 2 * (num_qubits_fract + num_qubits_int) * i + l + num_qubits_fract + (num_qubits_int + num_qubits_fract)
+				# Position in the QUBO matrix is given by the variable position (i), total number of qubits and the
+				# qubit position
+				# Relative qubit position is given by l + num_qubits_fract, where l=-qubits_fract ... qubits_int-1
+				po1 = 2 * (num_qubits_fract + num_qubits_int) * i + (l + num_qubits_fract)    # Positive part
+				# Relative qubit position in the negative part is given by l + num_qubits_fract + (num_qubits_int +
+				# num_qubits_fract) to add the positions of the positive part
+				po2 = 2 * (num_qubits_fract + num_qubits_int) * i + (l + num_qubits_fract) + (num_qubits_int +
+				                                                                            num_qubits_fract)  # Negative part
 
-				QM[po1][po1] = QM[po1][po1] + cef1 - cef2
-				QM[po2][po2] = QM[po2][po2] + cef1 + cef2
+				QM[po1][po1] = QM[po1][po1] + cef1 - cef2   # Positive part
+				QM[po2][po2] = QM[po2][po2] + cef1 + cef2   # Negative part
 
+	# first term (quadratic term)
 	for k in range(dimension):
 		for i in range(dimension):
+			# Number of integer and fractional qubits per each variable is given by num_qubits_dict (parameter)
 			num_qubits_int = num_qubits_dict[list_of_variables[dimension - 1]]["INTEGER"]
 			num_qubits_fract = num_qubits_dict[list_of_variables[dimension - 1]]["FRACTIONAL"]
 
-			for l1 in range((-1) * num_qubits_fract, num_qubits_int - 1, 1):
+			for l1 in range((-1) * num_qubits_fract, num_qubits_int -1, 1):
 				for l2 in range(l1 + 1, num_qubits_int):
 					qcef = pow(2, l1 + l2 + 1) * pow(A_matrix[k][i], 2)
-					po1 = 2 * (num_qubits_fract + num_qubits_int) * i + l1 + num_qubits_fract
-					po2 = 2 * (num_qubits_fract + num_qubits_int) * i + num_qubits_fract + l2
+					po1 = 2 * (num_qubits_fract + num_qubits_int) * i + (l1 + num_qubits_fract)
+					po2 = 2 * (num_qubits_fract + num_qubits_int) * i + (l2 + num_qubits_fract)
 
-					po3 = 2 * (num_qubits_fract + num_qubits_int) * i + num_qubits_fract + l1 + (num_qubits_int + num_qubits_fract)
-					po4 = 2 * (num_qubits_fract + num_qubits_int) * i + num_qubits_fract + l2 + (num_qubits_int + num_qubits_fract)
+					po3 = 2 * (num_qubits_fract + num_qubits_int) * i + (l1 + num_qubits_fract) + (num_qubits_int + num_qubits_fract)
+					po4 = 2 * (num_qubits_fract + num_qubits_int) * i + (l2 + num_qubits_fract) + (num_qubits_int + num_qubits_fract)
 
 					QM[po1][po2] = QM[po1][po2] + qcef
 					QM[po3][po4] = QM[po3][po4] + qcef
 
+	# second term (all quadratic terms)
 	for k in range(dimension):
 		for i in range(dimension - 1):
 			for j in range(i + 1, dimension):
-
+				# Number of integer and fractional qubits per each variable is given by num_qubits_dict (parameter)
 				num_qubits_int = num_qubits_dict[list_of_variables[dimension - 1]]["INTEGER"]
 				num_qubits_fract = num_qubits_dict[list_of_variables[dimension - 1]]["FRACTIONAL"]
 
 				for l1 in range((-1) * num_qubits_fract, num_qubits_int, 1):
 					for l2 in range((-1) * num_qubits_fract, num_qubits_int, 1):
 						qcef = pow(2, l1 + l2 + 1) * A_matrix[k][i] * A_matrix[k][j]
-						po1 = 2 * (num_qubits_fract + num_qubits_int) * i + num_qubits_fract + l1
-						po2 = 2 * (num_qubits_fract + num_qubits_int) * j + num_qubits_fract + l2
+						po1 = 2 * (num_qubits_fract + num_qubits_int) * i + (l1 + num_qubits_fract)
+						po2 = 2 * (num_qubits_fract + num_qubits_int) * j + (l2 + num_qubits_fract)
 
-						po3 = 2 * (num_qubits_fract + num_qubits_int) * i + num_qubits_fract + l1 + (num_qubits_int + num_qubits_fract)
-						po4 = 2 * (num_qubits_fract + num_qubits_int) * j + num_qubits_fract + l2 + (num_qubits_int + num_qubits_fract)
+						po3 = 2 * (num_qubits_fract + num_qubits_int) * i + (l1 + num_qubits_fract) + (num_qubits_int + num_qubits_fract)
+						po4 = 2 * (num_qubits_fract + num_qubits_int) * j + (l2 + num_qubits_fract) + (num_qubits_int + num_qubits_fract)
 
-						po5 = 2 * (num_qubits_fract + num_qubits_int) * i + num_qubits_fract + l1
-						po6 = 2 * (num_qubits_fract + num_qubits_int) * j + num_qubits_fract + l2 + (num_qubits_int + num_qubits_fract)
+						po5 = 2 * (num_qubits_fract + num_qubits_int) * i + (l1 + num_qubits_fract)
+						po6 = 2 * (num_qubits_fract + num_qubits_int) * j + (l2 + num_qubits_fract) + (num_qubits_int + num_qubits_fract)
 
-						po7 = 2 * (num_qubits_fract + num_qubits_int) * i + num_qubits_fract + l1 + (num_qubits_int + num_qubits_fract)
-						po8 = 2 * (num_qubits_fract + num_qubits_int) * j + num_qubits_fract + l2
+						po7 = 2 * (num_qubits_fract + num_qubits_int) * i + (l1 + num_qubits_fract) + (num_qubits_int + num_qubits_fract)
+						po8 = 2 * (num_qubits_fract + num_qubits_int) * j + (l2 + num_qubits_fract)
 
 						QM[po1][po2] = QM[po1][po2] + qcef
 						QM[po3][po4] = QM[po3][po4] + qcef
@@ -164,103 +111,7 @@ def get_qubo_matrix_approach_1_optimized_num_qubits(list_of_variables, num_qubit
 
 	return QM
 
-def get_qubo_matrix_approach_2(dimension, qubits_int, qubits_dec, A, b):
-	"""
-	This function returns the QUBO matrix with one qubit reserved for sign (positive/negative), using 2-complement and
-	the rest for positive values.
-	qubits for integer + qubits for fractional + 1 qubit for the sign are required for each variable
-	:param dimension: dimension of the equation system (example: 3 independent equations -> dimension=3)
-	:param qubits_int: number of qubits (integer part)
-	:param qubits_dec: number of qubits (decimal part)
-	:param A: A Matrix
-	:param b: b vector
-	:return: QM (Qubo matrix)
-	"""
-
-	QM = np.zeros(((qubits_int + qubits_dec + 1) * dimension,
-	               (qubits_int + qubits_dec + 1) * dimension))  # add only one qubit for the sign
-
-	# For calculating the coefficients, it has been considered -(2^m) * qi- where m=qubits_int, instead of -(2^(m + 1)) * qi-
-
-	# linear terms (diagonal)
-	for k in range(dimension):  # k corresponds with the row
-		for i in range(dimension):  # i corresponds with the column
-
-			cef1 = A[k][i] * b[k] * pow(2, (qubits_int - 1) + 2)  # Coefficient for qi- (third term)
-			cef2 = pow(A[k][i], 2) * pow(2, 2 * (qubits_int - 1) + 2)  # Coefficient for qi- (first term)
-			# position of qi-
-			po1 = (qubits_dec + qubits_int + 1) * i
-			QM[po1][po1] = QM[po1][po1] + cef1 + cef2
-
-			for l in range((-1) * qubits_dec, qubits_int,
-			               1):  # (l = -qubits_dec ... qubits_int-1). Integer + Float part
-				cef3 = pow(2, 2 * l) * pow(A[k][i], 2)  # Coefficient for qil+ (first term)
-				cef4 = pow(2, l + 1) * A[k][i] * b[k]  # Coefficient for qil+ (third term)
-				# position of qil+
-				po2 = (qubits_dec + qubits_int + 1) * i + l + qubits_dec + 1  # add only one qubit for the sign
-				QM[po2][po2] = QM[po2][po2] + cef3 - cef4
-
-	# quadratic terms
-	for k in range(dimension):
-		for i in range(dimension):
-			for l in range((-1) * qubits_dec, qubits_int,
-			               1):  # (l = -qubits_dec ... qubits_int-1). Integer + Float part
-				qcef = pow(2, l + (qubits_int - 1) + 2) * pow(A[k][i], 2)  # Coefficient for qi-qil+ (first term)
-				po1 = (qubits_dec + qubits_int + 1) * i
-				po2 = (qubits_dec + qubits_int + 1) * i + l + qubits_dec + 1  # add only one qubit for the sign
-				QM[po1][po2] = QM[po1][po2] - qcef
-
-	for k in range(dimension):
-		for i in range(dimension):
-			for l1 in range((-1) * qubits_dec, qubits_int - 1, 1):
-				for l2 in range(l1 + 1, qubits_int, 1):
-					qcef = pow(2, l1 + l2 + 1) * pow(A[k][i], 2)  # Coefficient for qil1+qil2+ (first term)
-					po1 = (qubits_dec + qubits_int + 1) * i + l1 + qubits_dec + 1  # add only one qubit for the sign
-					po2 = (qubits_dec + qubits_int + 1) * i + l2 + qubits_dec + 1  # add only one qubit for the sign
-
-					QM[po1][po2] = QM[po1][po2] + qcef
-
-	for k in range(dimension):
-		for i in range(dimension - 1):
-			for j in range(i + 1, dimension):
-
-				qcef = pow(2, 2 * (qubits_int - 1) + 3) * A[k][i] * A[k][j]  # Coefficient for qi-qj- (second term)
-				po1 = (qubits_dec + qubits_int + 1) * i
-				po2 = (qubits_dec + qubits_int + 1) * j
-				QM[po1][po2] = QM[po1][po2] + qcef
-
-				for l in range((-1) * qubits_dec, qubits_int,
-				               1):  # (l = -qubits_dec ... qubits_int-1). Integer + Float part
-					qcef = pow(2, l + (qubits_int - 1) + 2) * A[k][i] * A[k][
-						j]  # Coefficient for qi-qjl+ and qj-qil+ (second term)
-					po1 = (qubits_dec + qubits_int + 1) * i
-					po2 = (qubits_dec + qubits_int + 1) * j + l + qubits_dec + 1  # add only one qubit for the sign
-					po3 = (qubits_dec + qubits_int + 1) * j
-					po4 = (qubits_dec + qubits_int + 1) * i + l + qubits_dec + 1  # add only one qubit for the sign
-
-					QM[po1][po2] = QM[po1][po2] - qcef
-
-					if po3 - po4 > 0:
-						QM[po4][po3] = QM[po4][po3] - qcef
-					else:
-						QM[po3][po4] = QM[po3][po4] - qcef
-
-				for l1 in range((-1) * qubits_dec, qubits_int, 1):
-					for l2 in range((-1) * qubits_dec, qubits_int, 1):
-						qcef = pow(2, l1 + l2 + 1) * A[k][i] * A[k][j]  # Coefficient for qil1+qil2+ (second term)
-
-						po1 = (qubits_dec + qubits_int + 1) * i + qubits_dec + l1 + 1  # add only one qubit for the sign
-						po2 = (qubits_dec + qubits_int + 1) * j + qubits_dec + l2 + 1  # add only one qubit for the sign
-
-						QM[po1][po2] = QM[po1][po2] + qcef
-
-	# Print Matrix Q
-	print("# Matrix Q is")
-	print(QM)
-
-	return QM
-
-def get_qubo_matrix_approach_2_optimized_num_qubits(list_of_variables, num_qubits_dict, A_matrix, b_matrix):
+def get_qubo_matrix_with_sign_method(list_of_variables, num_qubits_dict, A_matrix, b_matrix):
 	"""
 	This function returns the QUBO matrix with one qubit reserved for sign (positive/negative), using 2-complement and
 	the rest for positive values.
@@ -380,52 +231,6 @@ def get_qubo_matrix_approach_2_optimized_num_qubits(list_of_variables, num_qubit
 
 	return QM
 
-def process_dwave_results(list_of_variables, method, response, num_qubits_dict, simulated=True):
-
-	qubit_list_per_variable_dict, number_qubits_used = get_qubits_per_variable(list_of_variables=list_of_variables, method=method,
-	                                                       num_qubits_dict=num_qubits_dict)
-
-	variable_value_dict = {}
-	result_index = 1
-
-	if simulated:
-		for raw_values_dict, energy, num_occurrences in response.data():
-			# For each result returned by dwave, calculate the variable values
-
-			result_dict = {}
-
-			for variable_index in range(0, len(list_of_variables)):
-				result_dict[list_of_variables[variable_index]] = get_value(method, raw_values_dict,
-				                                    num_qubits_dict[list_of_variables[variable_index]],
-				                                    qubit_list_per_variable_dict[list_of_variables[variable_index]])
-
-			result_dict["occurrences"] = num_occurrences
-			result_dict["energy"] = energy
-
-			variable_value_dict["result_" + str(result_index)] = result_dict
-			result_index += 1
-
-	else:
-		for raw_values_dict, energy, num_occurrences, _ in response.data():
-			# For each result returned by dwave, calculate the variable values
-
-			result_dict = {}
-
-			for variable_index in range(0, len(list_of_variables)):
-				result_dict[list_of_variables[variable_index]] = get_value(method, raw_values_dict,
-				                                                           num_qubits_dict[
-					                                                           list_of_variables[variable_index]],
-				                                                           qubit_list_per_variable_dict[
-					                                                           list_of_variables[variable_index]])
-
-			result_dict["occurrences"] = num_occurrences
-			result_dict["energy"] = energy
-
-			variable_value_dict["result_" + str(result_index)] = result_dict
-			result_index += 1
-
-	return variable_value_dict
-
 
 def get_qubits_per_variable(list_of_variables, method, num_qubits_dict):
 
@@ -435,13 +240,13 @@ def get_qubits_per_variable(list_of_variables, method, num_qubits_dict):
 	for variable_index in range(0, len(list_of_variables)):
 
 		num_qubits_variable = 0
-		if method == Method.METHOD_WITHOUT_SIGN:
+		if method == LinearCircuitSolver.Method.METHOD_WITHOUT_SIGN:
 			num_qubits_variable += num_qubits_dict[list_of_variables[variable_index]]["INTEGER"]     # Integer part & Positive
 			num_qubits_variable += num_qubits_dict[list_of_variables[variable_index]]["FRACTIONAL"]  # Fractional part & Positive
 			num_qubits_variable += num_qubits_dict[list_of_variables[variable_index]]["INTEGER"]     # Integer part & Negative
 			num_qubits_variable += num_qubits_dict[list_of_variables[variable_index]]["FRACTIONAL"]  # Fractional part & Negative
 
-		elif method == Method.METHOD_WITH_SIGN:
+		elif method == LinearCircuitSolver.Method.METHOD_WITH_SIGN:
 			num_qubits_variable += 1    # Sign
 			num_qubits_variable += num_qubits_dict[list_of_variables[variable_index]]["INTEGER"] # Integer part
 			num_qubits_variable += num_qubits_dict[list_of_variables[variable_index]]["FRACTIONAL"]  # Fractional part
@@ -465,7 +270,7 @@ def get_value(method, raw_values_dict, num_qubits_dict, list_of_qubits):
 
 	value = 0
 	qubit_index = 0
-	if method == Method.METHOD_WITHOUT_SIGN:
+	if method == LinearCircuitSolver.Method.METHOD_WITHOUT_SIGN:
 
 		# Get number of qubits Fractional / positive
 		for index in range(0, num_qubits_dict["FRACTIONAL"]):
@@ -497,7 +302,7 @@ def get_value(method, raw_values_dict, num_qubits_dict, list_of_qubits):
 			qubit_index += 1
 
 
-	elif method == Method.METHOD_WITH_SIGN:
+	elif method == LinearCircuitSolver.Method.METHOD_WITH_SIGN:
 
 		# Sign
 		qubit_name = list_of_qubits[qubit_index]
@@ -571,3 +376,20 @@ def plot_histogram(data):
 
 	return result_dict
 
+# def add_weights(qubo_matrix, list_of_variables, list_of_values):
+#
+#
+# 	for i in range(0, len(qubo_matrix[0])):
+# 		qubo_matrix[i][0] = qubo_matrix[i][0] * 100
+#
+# 	for i in range(0, len(qubo_matrix[0])):
+# 		qubo_matrix[i][2] = qubo_matrix[i][2] * 100
+# 	# qubo_matrix[2][2] = qubo_matrix[2][2] * 100
+#
+# 	for i in range(0, len(qubo_matrix[0])):
+# 		qubo_matrix[i][13] = qubo_matrix[i][13] * 100
+#
+# 	# for variable, i in list_of_variables, range(0, len(list_of_variables)):
+# 	# 	value = list_of_values[i]
+# 	# 	# Find the coefficients in the QUBO matrix of the variable.
+# 	return qubo_matrix

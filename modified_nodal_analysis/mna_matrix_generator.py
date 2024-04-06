@@ -659,7 +659,7 @@ class MnaMatrixGenerator:
 	def v_matrix_generator(self, print_info=False):
 		# generate the V matrix
 		for i in range(self.num_nodes):
-			self.v_matrix[i] = sympify('v{:d}'.format(i + 1))
+			self.v_matrix[i] = sympify('V{:d}'.format(i + 1))
 
 		if print_info:
 			print(self.v_matrix)  # display the V matrix
