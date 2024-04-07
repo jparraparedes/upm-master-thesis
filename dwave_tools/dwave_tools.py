@@ -11,7 +11,7 @@ with open('dwave_token.txt', 'r') as file:
 
 # Print Python code for the run in D-Wave quantum processing unit
 
-def get_dwave_solution(annealer_solution, total_num_qubits, QM, num_reads=500):
+def get_dwave_solution(annealer_solution, total_num_qubits, QM, num_reads=500, chain_strength=100):
 
 	linear_dict = {}
 	for i in range(total_num_qubits - 1):
@@ -42,7 +42,7 @@ def get_dwave_solution(annealer_solution, total_num_qubits, QM, num_reads=500):
 		response = sampler.sample_qubo(qubo)
 	elif annealer_solution == AnnealerSolution.DWAVE_QPU:
 		sampler = EmbeddingComposite(DWaveSampler())
-		response = sampler.sample_qubo(qubo, num_reads=num_reads, chain_strength=100)
+		response = sampler.sample_qubo(qubo, num_reads=num_reads, chain_strength=chain_strength)
 	else:
 		raise Exception("Annealer Solution not found : {}".format(annealer_solution))
 

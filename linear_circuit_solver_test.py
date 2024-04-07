@@ -1,18 +1,33 @@
-import numpy as np
 from qubo_formulation import qubo_formulation
 from modified_nodal_analysis.mna_matrix_generator import MnaMatrixGenerator
 from helpers.constants import LinearCircuitSolver, AnnealerSolution
 from helpers.linear_solver import get_solution, get_results
+from fujitsu_tools.fujitsu_tools import TemperatureMode
+from dadk.QUBOSolverCPU import *
 
 """
 ######################## Input Parameters #############################################################################
 """
-test_circuit = LinearCircuitSolver.TestCircuits.get_test_circuit_path(LinearCircuitSolver.TestCircuits.TEST_CIRCUIT_1)
-method = LinearCircuitSolver.Method.METHOD_WITHOUT_SIGN
-annealer_solution = AnnealerSolution.FUJITSU_DIG_ANNEALER
+test_circuit = LinearCircuitSolver.TestCircuits.get_test_circuit_path(LinearCircuitSolver.TestCircuits.TEST_CIRCUIT_4)
+method = LinearCircuitSolver.Method.METHOD_WITH_SIGN
+annealer_solution = AnnealerSolution.FUJITSU_SIM
 number_of_integer_qubits = 4
-number_of_fractional_qubits = 4
+number_of_fractional_qubits = 8
 num_reads = 128
+
+# FUJITSU Parameters
+fujitsu_number_iterations = 500
+fujitsu_temperature_start = 0.01
+fujitsu_temperature_end = 0.00001
+fujitsu_temperature_mode = TemperatureMode.EXPONENTIAL
+fujitsu_temperature_interval = 1
+fujitsu_offset_increase_rate = 0.00005
+fujitsu_scaling_bit_precision = 62
+fujitsu_auto_tuning = AutoTuning.AUTO_SCALING
+fujitsu_graphics = GraphicsDetail.ALL
+
+# DWAVE Parameters
+dwave_chain_strength = 1
 
 """
 ######################## Modified Nodal Analysis ######################################################################
@@ -45,7 +60,17 @@ qubo_matrix = qubo_formulation.get_qubo_matrix(method=method, list_of_variables=
 
 # QUBO problem is solved by chosen annealer solution
 response = get_solution(annealer_solution=annealer_solution, number_qubits_used=number_qubits_used,
-                        qubo_matrix=qubo_matrix, num_reads=num_reads)
+                        qubo_matrix=qubo_matrix, num_reads=num_reads,
+                        dwave_chain_strength=dwave_chain_strength,
+                        fujitsu_number_iterations=fujitsu_number_iterations,
+                        fujitsu_temperature_start=fujitsu_temperature_start,
+                        fujitsu_temperature_end=fujitsu_temperature_end,
+                        fujitsu_temperature_mode=fujitsu_temperature_mode,
+                        fujitsu_temperature_interval=fujitsu_temperature_interval,
+                        fujitsu_offset_increase_rate=fujitsu_offset_increase_rate,
+                        fujitsu_scaling_bit_precision=fujitsu_scaling_bit_precision,
+                        fujitsu_auto_tuning=fujitsu_auto_tuning,
+                        fujitsu_graphics=fujitsu_graphics)
 
 # Postprocess results
 data = get_results(annealer_solution=annealer_solution, x_matrix=x_matrix, method=method, response=response,
@@ -53,3 +78,6 @@ data = get_results(annealer_solution=annealer_solution, x_matrix=x_matrix, metho
 
 # Print data
 print(data)
+
+# if annealer_solution == AnnealerSolution.FUJITSU_SIM:
+#     response.display_graphs()
