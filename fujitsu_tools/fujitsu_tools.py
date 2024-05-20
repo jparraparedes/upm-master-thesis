@@ -30,42 +30,7 @@ def get_fujitsu_solution(annealer_solution, total_num_qubits, QM, num_reads=4, n
 			if QM[i][j] != 0:
 				myPoly.set_term(QM[i][j], (i, j))
 
-	if annealer_solution == AnnealerSolution.FUJITSU_DIG_ANNEALER:
-
-		solver = QUBOSolverDAv2(
-			number_iterations=number_iterations,  # Total number of iterations per run.
-			number_runs=num_reads,  # Number of stochastically independent runs.
-			temperature_start=temperature_start,  # Start temperature of the annealing process.
-			temperature_end=temperature_end,  # End temperature of the annealing process.
-			temperature_mode=temperature_mode,  # 0, 1, or 2 to define the cooling curve:
-			#    0, 'EXPONENTIAL':
-			#       reduce temperature by factor (1-temperature_decay) every temperature_interval steps
-			#    1, 'INVERSE':
-			#       reduce temperature by factor (1-temperature_decay*temperature) every temperature_interval steps
-			#    2, 'INVERSE_ROOT':
-			#       reduce temperature by factor (1-temperature_decay*temperature^2) every temperature_interval steps
-			temperature_interval=temperature_interval,  # Number of iterations keeping temperature constant.
-			offset_increase_rate=offset_increase_rate,
-			# Increase of dynamic offset when no bit selected. Set to 0.0 to switch off dynamic energy feature.
-			auto_tuning=auto_tuning,
-			# Following methods for scaling ``qubo`` and determining temperatures are available:
-			#    AutoTuning.NOTHING:
-			#       no action
-			#    AutoTuning.SCALING:
-			#       ``scaling_factor`` is multiplied to ``qubo``, ``temperature_start``, ``temperature_end`` and ``offset_increase_rate``.
-			#    AutoTuning.AUTO_SCALING:
-			#       A maximum scaling factor w.r.t. ``scaling_bit_precision`` is multiplied to ``qubo``, ``temperature_start``, ``temperature_end`` and ``offset_increase_rate``.
-			#    AutoTuning.SAMPLING:
-			#       ``temperature_start``, ``temperature_end`` and ``offset_increase_rate`` are automatically determined.
-			#    AutoTuning.AUTO_SCALING_AND_SAMPLING:
-			#       Temperatures and scaling factor are automatically determined and applied.
-			scaling_bit_precision=scaling_bit_precision,
-			# Maximum ``scaling_bit_precision`` for ``qubo``. Used to define the scaling factor for ``qubo``, ``temperature_start``, ``temperature_end`` and ``offset_increase_rate``.
-			use_access_profile=True,
-			access_profile_file="localhost.prf"
-		)
-
-	elif annealer_solution == AnnealerSolution.FUJITSU_SIM:
+	if annealer_solution == AnnealerSolution.FUJITSU_SIM:
 		solver = QUBOSolverCPU(
 			number_iterations=number_iterations,  # Total number of iterations per run.
 			number_runs=num_reads,  # Number of stochastically independent runs.

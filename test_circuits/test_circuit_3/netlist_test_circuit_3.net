@@ -1,0 +1,11 @@
+*D:\Javi\Computacion_cuantica\2022_master_UPM_Quantum_computing\14_master_thesis\upm_master_thesis_repo\test_circuits\test_circuit_4\test_circuit_4_mna.asc
+R1 3 1 1
+R2 4 2 1
+R3 5 3 1
+R4 4 0 1
+V1 1 0 5
+V2 2 0 2
+E1 5 0 3 4 100
+.op
+.backanno
+.end
