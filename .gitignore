@@ -5,3 +5,5 @@
 /.idea/vcs.xml
 /dwave_token.txt
 /localhost.prf
+/test_circuits/test_circuit_5/
+/test_circuits/test_circuit_6/

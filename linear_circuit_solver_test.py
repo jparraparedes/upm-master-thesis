@@ -4,15 +4,16 @@ from helpers.constants import LinearCircuitSolver, AnnealerSolution
 from helpers.linear_solver import get_solution, get_results
 from fujitsu_tools.fujitsu_tools import TemperatureMode
 from dadk.QUBOSolverCPU import *
+import time
 
 """
 ######################## Input Parameters #############################################################################
 """
-test_circuit = LinearCircuitSolver.TestCircuits.get_test_circuit_path(LinearCircuitSolver.TestCircuits.TEST_CIRCUIT_1)
+test_circuit = LinearCircuitSolver.TestCircuits.get_test_circuit_path(LinearCircuitSolver.TestCircuits.TEST_CIRCUIT_3)
 method = LinearCircuitSolver.Method.METHOD_WITH_SIGN
-annealer_solution = AnnealerSolution.DWAVE_SIM
+annealer_solution = AnnealerSolution.FUJITSU_SIM
 number_of_integer_qubits = 4
-number_of_fractional_qubits = 6
+number_of_fractional_qubits = 5
 
 if annealer_solution == AnnealerSolution.FUJITSU_SIM:
     num_reads = 125
@@ -21,23 +22,24 @@ else:
 
 # FUJITSU Parameters
 fujitsu_number_iterations = 1000
-fujitsu_temperature_start = 0.1
+fujitsu_temperature_start = 0.01
 fujitsu_temperature_end = 0.000001
 fujitsu_temperature_mode = TemperatureMode.EXPONENTIAL
 fujitsu_temperature_interval = 1
 
-fujitsu_offset_increase_rate = 0.1
+fujitsu_offset_increase_rate = 300.0
 fujitsu_scaling_bit_precision = 62
 fujitsu_auto_tuning = AutoTuning.AUTO_SCALING
 fujitsu_graphics = GraphicsDetail.ALL
 
 # DWAVE Parameters
-dwave_chain_strength = 10
+dwave_chain_strength = 700
 dwave_annealing_time_us = 20
 
 """
 ######################## Modified Nodal Analysis ######################################################################
 """
+time_1 = time.time()
 mna_matrix_gen = MnaMatrixGenerator()
 z_matrix, x_matrix, a_matrix, df, symbol_value_dict = mna_matrix_gen.get_a_b_x_matrix(netlist_filename=test_circuit)
 
@@ -63,6 +65,8 @@ qubo_matrix = qubo_formulation.get_qubo_matrix(method=method, list_of_variables=
                                                num_qubits_dict=num_qubits_dict,
                                                A_matrix=A_matrix, b_matrix=b_matrix)
 
+time_2 = time.time()
+
 # QUBO problem is solved by chosen annealer solution
 response = get_solution(annealer_solution=annealer_solution, number_qubits_used=number_qubits_used,
                         qubo_matrix=qubo_matrix, num_reads=num_reads,
@@ -78,12 +82,25 @@ response = get_solution(annealer_solution=annealer_solution, number_qubits_used=
                         fujitsu_auto_tuning=fujitsu_auto_tuning,
                         fujitsu_graphics=fujitsu_graphics)
 
+time_3 = time.time()
+
 # Postprocess results
 data = get_results(annealer_solution=annealer_solution, x_matrix=x_matrix, method=method, response=response,
                    num_qubits_dict=num_qubits_dict)
 
 # Print data
 print(data)
+
+time_4 = time.time()
+
+print("Time 1: " + str(time_1))
+print("Time 2: " + str(time_2))
+print("Time 3: " + str(time_3))
+print("Time 4: " + str(time_4))
+
+print("Overall Time: " + str(time_4-time_1))
+print("Solver processing Time: " + str(time_3-time_2))
+
 
 if annealer_solution == AnnealerSolution.FUJITSU_SIM:
     response.display_graphs()

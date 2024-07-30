@@ -42,6 +42,7 @@ def get_dwave_solution(annealer_solution, total_num_qubits, QM, num_reads=500, c
         sampler = LeapHybridSampler()
         response = sampler.sample_qubo(qubo)
     elif annealer_solution == AnnealerSolution.DWAVE_QPU:
+        # sampler = EmbeddingComposite(DWaveSampler(solver={'topology__type': 'zephyr'}))
         sampler = EmbeddingComposite(DWaveSampler())
         response = sampler.sample_qubo(qubo, num_reads=num_reads, chain_strength=chain_strength, annealing_time=annealing_time_us)
         show(response)

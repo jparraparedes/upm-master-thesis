@@ -2,6 +2,7 @@
 from fujitsu_tools import fujitsu_tools
 from dwave_tools import dwave_tools
 from helpers.constants import AnnealerSolution
+from sympy import *
 
 def get_solution(annealer_solution, number_qubits_used, qubo_matrix, num_reads,
                  dwave_chain_strength=None,
@@ -48,3 +49,43 @@ def get_results(annealer_solution, x_matrix, method, response, num_qubits_dict):
 		raise Exception("Annealer Solution not found : {}".format(annealer_solution))
 
 	return data
+
+
+def get_expected_results_from_file(expected_results_file_path):
+
+	expected_results_dict = {}
+	expected_results_file = open(expected_results_file_path, 'r')
+
+	lines = expected_results_file.readlines()
+	for line in lines:
+		key_raw = line.split('=')[0]
+		key = key_raw.strip()
+		value_raw = line.split('=')[1]
+		value = value_raw.strip()
+
+		expected_results_dict[Symbol(key)] = float(value)
+
+	return expected_results_dict
+
+def get_error_lsb_wrt_expected_results(expected_results_dict, data_dict, num_qubits_dict):
+
+	absolute_error_dict = {}
+	percentage_error_dict = {}
+	lsb_dict = {}
+
+	# Go through all the variables
+	for key in expected_results_dict:
+		expected_result = expected_results_dict[key]
+		absolute_error_dict[key] = data_dict[key] - expected_result
+
+		# calculate difference wrt expected results of LSBs
+		lsb_value = pow(2, -num_qubits_dict[key]["FRACTIONAL"])
+		lsb_dict[key] = (data_dict[key] - expected_result)/lsb_value
+
+		if expected_result != 0:
+			# Calculate error
+			percentage_error_dict[key] = 100 * (data_dict[key] - expected_result) / expected_result
+		else:
+			percentage_error_dict[key] = "N/A"
+
+	return absolute_error_dict, percentage_error_dict, lsb_dict
