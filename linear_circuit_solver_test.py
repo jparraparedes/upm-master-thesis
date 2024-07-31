@@ -1,7 +1,18 @@
+#!/usr/bin/env python3
+
+"""
+Master's Thesis Quantum Computing in Electronics Design (Universidad Politecnica de Madrid)
+Code for executing the test of the electronic circuits
+
+:author: Javier Parra Paredes
+"""
+
+# Import Libraries
 from qubo_formulation import qubo_formulation
 from modified_nodal_analysis.mna_matrix_generator import MnaMatrixGenerator
 from helpers.constants import LinearCircuitSolver, AnnealerSolution
 from helpers.linear_solver import get_solution, get_results
+from helpers.variables import get_qubits_per_variable
 from fujitsu_tools.fujitsu_tools import TemperatureMode
 from dadk.QUBOSolverCPU import *
 import time
@@ -9,11 +20,11 @@ import time
 """
 ######################## Input Parameters #############################################################################
 """
-test_circuit = LinearCircuitSolver.TestCircuits.get_test_circuit_path(LinearCircuitSolver.TestCircuits.TEST_CIRCUIT_3)
+test_circuit = LinearCircuitSolver.TestCircuits.get_test_circuit_path(LinearCircuitSolver.TestCircuits.TEST_CIRCUIT_1)
 method = LinearCircuitSolver.Method.METHOD_WITH_SIGN
-annealer_solution = AnnealerSolution.FUJITSU_SIM
-number_of_integer_qubits = 4
-number_of_fractional_qubits = 5
+annealer_solution = AnnealerSolution.DWAVE_SIM
+number_of_integer_qubits = 2
+number_of_fractional_qubits = 2
 
 if annealer_solution == AnnealerSolution.FUJITSU_SIM:
     num_reads = 125
@@ -41,9 +52,9 @@ dwave_annealing_time_us = 20
 """
 time_1 = time.time()
 mna_matrix_gen = MnaMatrixGenerator()
-z_matrix, x_matrix, a_matrix, df, symbol_value_dict = mna_matrix_gen.get_a_b_x_matrix(netlist_filename=test_circuit)
+b_raw_matrix, x_matrix, a_matrix, df, symbol_value_dict = mna_matrix_gen.get_a_b_x_matrix(netlist_filename=test_circuit)
 
-print(z_matrix)
+print(b_raw_matrix)
 print(x_matrix)
 print(a_matrix)
 print(df)
@@ -55,15 +66,15 @@ for i in range(0, len(x_matrix)):
     num_qubits_dict[x_matrix[i]] = dict_aux
 
 A_matrix = np.asarray(a_matrix.subs(symbol_value_dict))
-b_matrix = [expr.subs(symbol_value_dict) for expr in z_matrix]
+b_matrix = [expr.subs(symbol_value_dict) for expr in b_raw_matrix]
 
 qubit_list_per_variable_dict, number_qubits_used = \
-    qubo_formulation.get_qubits_per_variable(list_of_variables=x_matrix, method=method, num_qubits_dict=num_qubits_dict)
+    get_qubits_per_variable(list_of_variables=x_matrix, method=method, num_qubits_dict=num_qubits_dict)
 
 # QUBO Matrix is generated
 qubo_matrix = qubo_formulation.get_qubo_matrix(method=method, list_of_variables=x_matrix,
                                                num_qubits_dict=num_qubits_dict,
-                                               A_matrix=A_matrix, b_matrix=b_matrix)
+                                               a_matrix=A_matrix, b_matrix=b_matrix)
 
 time_2 = time.time()
 
@@ -92,11 +103,6 @@ data = get_results(annealer_solution=annealer_solution, x_matrix=x_matrix, metho
 print(data)
 
 time_4 = time.time()
-
-print("Time 1: " + str(time_1))
-print("Time 2: " + str(time_2))
-print("Time 3: " + str(time_3))
-print("Time 4: " + str(time_4))
 
 print("Overall Time: " + str(time_4-time_1))
 print("Solver processing Time: " + str(time_3-time_2))

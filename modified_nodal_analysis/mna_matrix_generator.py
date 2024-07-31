@@ -1,6 +1,16 @@
+#!/usr/bin/env python3
+
 """
-Source : https://github.com/Tiburonboy/Symbolic-Modified-Nodal-Analysis-using-Python
+Master's Thesis Quantum Computing in Electronics Design (Universidad Politecnica de Madrid)
+Code with constants/associated functions used throughout the code
+
+:author: Javier Parra Paredes
+Based on https://github.com/Tiburonboy/Symbolic-Modified-Nodal-Analysis-using-Python, under
+Creative Commons Attribution 4.0 International Public license
+
+This file is also under Creative Commons Attribution 4.0 International Public license.
 """
+
 
 from sympy import *
 import numpy as np
@@ -279,8 +289,6 @@ class MnaMatrixGenerator:
 				print('nodes not in continuous order, node {:.0f} is missing'.format(p[i - 1] + 1))
 
 		return largest
-
-
 
 	def content_parser(self):
 
@@ -793,6 +801,12 @@ class MnaMatrixGenerator:
 		return symbol_value_dict
 
 	def get_a_b_x_matrix(self, netlist_filename, print_info=False):
+		"""
+		This function returns the A, b and x matrices of the test circuit (netlist information provided as parameter)
+		:param netlist_filename: netlist file name of the test circuit
+		:param print_info: True or False
+		:return: it returns b (called in this file z_matrix), x and A matrices
+		"""
 		self.process_spice_file(filename=netlist_filename)
 		self.content_parser()
 		if print_info:
@@ -806,13 +820,3 @@ class MnaMatrixGenerator:
 		self.symbol_value_dict = self.get_symbol_value_dict()
 
 		return self.z_matrix, self.x_matrix, self.a_matrix, self.df, self.symbol_value_dict
-
-
-# mna_matrix_gen = MnaMatrixGenerator()
-# z_matrix, x_matrix, a_matrix, df, symbol_value_dict = mna_matrix_gen.get_a_b_x_matrix(netlist_filename='D:\\Javi\\Computacion_cuantica\\2022_master_UPM_Quantum_computing\\14_master_thesis\\upm_master_thesis_repo\\test_circuits\\test_circuit_1\\test_circuit_1.net')
-#
-# print(z_matrix)
-# print(x_matrix)
-# print(a_matrix)
-# print(df)
-# print(symbol_value_dict)
