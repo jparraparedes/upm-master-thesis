@@ -1,7 +1,12 @@
 # upm-master-thesis
-UPM Master Thesis - Quantum Computing in Electronics Design
+UPM Master's Thesis - Quantum Computing in Electronics Design
+Universidad Politécnica de Madrid
+Master in Quantum Computing Technologies
 
-Licence : Creative Commons Attribution 4.0 International Public license
+Author: Javier Parra Paredes
+Director: Rafael Martín-Cuevas Redondo
+
+License : Creative Commons Attribution 4.0 International Public license
 
 
 Tools used:
@@ -22,5 +27,5 @@ https://arxiv.org/abs/1809.07649
 
 Reference: Symbolic Modified nodal analysis
 https://github.com/Tiburonboy/Symbolic-modified-nodal-analysis
-
+The SW has been adapted and it is under Creative Commons Attribution 4.0 International Public license
 

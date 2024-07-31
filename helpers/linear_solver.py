@@ -3,6 +3,7 @@ from fujitsu_tools import fujitsu_tools
 from dwave_tools import dwave_tools
 from helpers.constants import AnnealerSolution
 from sympy import *
+from math import ceil
 
 def get_solution(annealer_solution, number_qubits_used, qubo_matrix, num_reads,
                  dwave_chain_strength=None,
@@ -80,7 +81,7 @@ def get_error_lsb_wrt_expected_results(expected_results_dict, data_dict, num_qub
 
 		# calculate difference wrt expected results of LSBs
 		lsb_value = pow(2, -num_qubits_dict[key]["FRACTIONAL"])
-		lsb_dict[key] = (data_dict[key] - expected_result)/lsb_value
+		lsb_dict[key] = ceil(abs((data_dict[key] - expected_result)/lsb_value))
 
 		if expected_result != 0:
 			# Calculate error

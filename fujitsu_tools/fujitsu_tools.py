@@ -12,6 +12,70 @@ class TemperatureMode:
 	INVERSE = 1
 	INVERSE_ROOT = 2
 
+	@staticmethod
+	def get_temperature_mode_str(temperature_mode_int):
+		d = {
+			TemperatureMode.EXPONENTIAL : "EXPONENTIAL",
+			TemperatureMode.INVERSE: "INVERSE",
+			TemperatureMode.INVERSE_ROOT: "INVERSE_ROOT",
+		}
+		return d[temperature_mode_int]
+
+	@staticmethod
+	def get_temperature_mode_int(temperature_mode_str):
+		d = {
+			"EXPONENTIAL": TemperatureMode.EXPONENTIAL,
+			"INVERSE": TemperatureMode.INVERSE,
+			"INVERSE_ROOT": TemperatureMode.INVERSE_ROOT
+		}
+		return d[temperature_mode_str]
+
+class AutoTuningMode:
+
+	@staticmethod
+	def get_auto_tuning_mode_str(auto_tuning_mode_int):
+		d = {
+			AutoTuning.NOTHING: "NOTHING",
+			AutoTuning.SCALING: "SCALING",
+			AutoTuning.AUTO_SCALING: "AUTO_SCALING",
+			AutoTuning.SAMPLING: "SAMPLING",
+			AutoTuning.AUTO_SCALING_AND_SAMPLING: "AUTO_SCALING_AND_SAMPLING",
+			AutoTuning.SCALING_AND_SAMPLING: "SCALING_AND_SAMPLING"
+		}
+		return d[auto_tuning_mode_int]
+
+	@staticmethod
+	def get_auto_tuning_mode_int(auto_tuning_mode_str):
+		d = {
+			"NOTHING": AutoTuning.NOTHING,
+			"SCALING": AutoTuning.SCALING,
+			"AUTO_SCALING": AutoTuning.AUTO_SCALING,
+			"SAMPLING": AutoTuning.SAMPLING,
+			"AUTO_SCALING_AND_SAMPLING": AutoTuning.AUTO_SCALING_AND_SAMPLING,
+			"SCALING_AND_SAMPLING": AutoTuning.SCALING_AND_SAMPLING
+		}
+		return d[auto_tuning_mode_str]
+
+class GraphicsDetailMode:
+
+	@staticmethod
+	def get_graphics_detail_str(graphics_detail_int):
+		d = {
+			GraphicsDetail.NOTHING: "NOTHING",
+			GraphicsDetail.SINGLE: "SINGLE",
+			GraphicsDetail.ALL: "ALL"
+		}
+		return d[graphics_detail_int]
+
+	@staticmethod
+	def get_graphics_detail_int(graphics_detail_str):
+		d = {
+			"NOTHING": GraphicsDetail.NOTHING,
+			"SINGLE": GraphicsDetail.SINGLE,
+			"ALL": GraphicsDetail.ALL
+		}
+		return d[graphics_detail_str]
+
 def get_fujitsu_solution(annealer_solution, total_num_qubits, QM, num_reads=4, number_iterations=500, temperature_start=0.01,
                          temperature_end=0.00001, temperature_mode=TemperatureMode.EXPONENTIAL, temperature_interval=1,
                          offset_increase_rate=0.0005, scaling_bit_precision=62, auto_tuning=AutoTuning.AUTO_SCALING,

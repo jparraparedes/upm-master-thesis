@@ -63,7 +63,7 @@ class LinearCircuitSolver:
 			d = {
 				LinearCircuitSolver.TestCircuits.TEST_CIRCUIT_1: 'test_circuit_1_solution.txt',
 				LinearCircuitSolver.TestCircuits.TEST_CIRCUIT_2: 'test_circuit_2_solution.txt',
-				LinearCircuitSolver.TestCircuits.TEST_CIRCUIT_3: 'test_circuit_3_mna_solution.txt',
+				LinearCircuitSolver.TestCircuits.TEST_CIRCUIT_3: 'test_circuit_3_solution.txt',
 				LinearCircuitSolver.TestCircuits.TEST_CIRCUIT_4: 'test_circuit_4_solution.txt',
 			}
 			return d[test_circuit]
@@ -73,5 +73,4 @@ class AnnealerSolution:
 	DWAVE_SIM = "DWAVE_SIM"
 	DWAVE_HYBRID_SOLVER = "DWAVE_HYBRID_SOLVER"
 	DWAVE_QPU = "DWAVE_QPU"
-
 	FUJITSU_SIM = "FUJITSU_SIM"

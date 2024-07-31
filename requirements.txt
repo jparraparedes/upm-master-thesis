@@ -13,3 +13,5 @@ plotly==5.18.0
 scikit-learn==1.3.2
 seaborn==0.13.0
 # .\dadk_light.tar.bz2
+ipywidgets~=8.1.2
+dadk~=2024.3.24

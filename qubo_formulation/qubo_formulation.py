@@ -393,3 +393,25 @@ def plot_histogram(data):
 # 	# 	value = list_of_values[i]
 # 	# 	# Find the coefficients in the QUBO matrix of the variable.
 # 	return qubo_matrix
+
+def plot_error(absolute_error_dict, title):
+
+	fig, ax = plt.subplots()
+
+	list_of_variable_name_str = []
+	list_of_values_str = []
+	list_of_values_float = []
+
+	for variable_name_symbol in absolute_error_dict.keys():
+		list_of_variable_name_str.append(str(variable_name_symbol))
+		list_of_values_str.append(str(round(absolute_error_dict[variable_name_symbol],2)))
+		list_of_values_float.append(round(absolute_error_dict[variable_name_symbol],2))
+
+	ax.bar(list_of_variable_name_str, absolute_error_dict.values())
+	ax.set_ylabel(title)
+	ax.set_title(title + ' with respect to Theoretical value')
+
+	for i in range(len(list_of_variable_name_str)):
+		plt.text(i, list_of_values_float[i], list_of_values_str[i], ha='center')
+
+	plt.show()
